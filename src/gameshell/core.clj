@@ -28,11 +28,24 @@
                     ~@'~args
                     :else '(I cannot ~'~command like that -)))))
 
+(def commandlist (seq "abc"))
+(defn stringtest [] (map println commandlist))
+(defn testy [command]
+  (println command)
+  (cond
+    (not (some #{command} commandlist)) (println "Not in list")
+    :else (println "In list")))
+
 ; Currently not thread-safe FIXME: decide if I care
 (defmacro add-inaction [command & args]
-  `(defmacro ~command []
-     `println((def commandlist (conj commandlist '~'~command)))
-     `(~@'~args)))
+  (cond 
+    (not (some #{command} commandlist))
+         (do
+           (def commandlist (conj commandlist command))
+           ; This bit still doesn't work (and I don't understand it)
+           `(defmacro ~command []
+              `(println (~@'~args))))
+    :else (println "didn't work")))
 
 ;------------------------------------------------------;
 ; functions
