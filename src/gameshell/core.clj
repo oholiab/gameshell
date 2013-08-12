@@ -3,7 +3,7 @@
 ;-------------------------------------------------------;
 ; meta-state information
 
-(def commandlist nil)
+(def commandlist (ref()))
 
 ;-------------------------------------------------------;
 ; game loop and validation
@@ -19,6 +19,7 @@
       (println "That is not valid")
       (recur))))
 
+;someone else's code really I don't really understand it. Here until I do.
 (defmacro add-action [command subj obj place & args]
   `(defmacro ~command [subject# object#]
     `(println (cond (and (= location '~'~place)
@@ -28,24 +29,21 @@
                     ~@'~args
                     :else '(I cannot ~'~command like that -)))))
 
-(def commandlist (seq "abc"))
-(defn stringtest [] (map println commandlist))
-(defn testy [command]
-  (println command)
-  (cond
-    (not (some #{command} commandlist)) (println "Not in list")
-    :else (println "In list")))
+; print the commandlist
+(defn printcommands [] (map println @commandlist))
 
-; Currently not thread-safe FIXME: decide if I care
-(defmacro add-inaction [command & args]
+(defn commandlist-bump [command]
+  (println "Adding" command)
+  (dosync (alter commandlist conj command)))
+
+; Thread safe now, just doesn't work :P
+(defn add-inaction [command & args]
   (cond 
-    (not (some #{command} commandlist))
+    (not (some #{command} @commandlist))
          (do
-           (def commandlist (conj commandlist command))
-           ; This bit still doesn't work (and I don't understand it)
-           `(defmacro ~command []
-              `(println (~@'~args))))
-    :else (println "didn't work")))
+           (commandlist-bump command))
+    :else (println "Already in command list")))
+
 
 ;------------------------------------------------------;
 ; functions
