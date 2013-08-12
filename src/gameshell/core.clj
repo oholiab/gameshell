@@ -34,7 +34,7 @@
 
 (defn commandlist-bump [command]
   (println "Adding" command)
-  (dosync (alter commandlist conj command)))
+  (dosync (commute commandlist conj command)))
 
 ; Thread safe now, just doesn't work :P
 (defn add-inaction [command & args]
